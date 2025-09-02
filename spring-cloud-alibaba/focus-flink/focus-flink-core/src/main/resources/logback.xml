@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 控制台输出器 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 设置特定包的日志级别 -->
+    
+    <!-- 屏蔽Debezium的调试信息 -->
+    <logger name="io.debezium.connector.base.ChangeEventQueue" level="ERROR" />
+    <logger name="io.debezium" level="WARN" />
+    
+    <!-- 控制Flink内部日志 -->
+    <logger name="org.apache.flink.shaded" level="WARN" />
+    <logger name="org.apache.flink.runtime.executiongraph" level="WARN" />
+    <logger name="org.apache.flink.runtime.taskmanager" level="WARN" />
+    <logger name="org.apache.flink.runtime.checkpoint" level="INFO" />
+    
+    <!-- 控制Kafka日志 -->
+    <logger name="org.apache.kafka" level="WARN" />
+    
+    <!-- MySQL binlog client -->
+    <logger name="com.github.shyiko.mysql.binlog" level="INFO" />
+    
+    <!-- 我们的应用日志 -->
+    <logger name="com.focus.flink" level="INFO" />
+
+    <!-- 根日志级别 -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+    </root>
+</configuration>

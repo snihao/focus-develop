@@ -13,6 +13,7 @@ import lombok.Data;
 @Data
 @TableName("d_basics_test")
 public class BasicsTest extends BaseEntity {
+
     /**
      * 测试名称
      */

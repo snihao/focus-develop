@@ -1,9 +1,9 @@
 server:
-  port: 10013
+  port: 10015
 
 spring:
   application:
-    name: focus-demo-startup
+    name: focus-flink-kafka-consumption
   profiles:
     active: @profiles.active@
 
@@ -30,6 +30,3 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: AUTO
-      logic-delete-field: deleteStatus
-      logic-delete-value: 1   # 逻辑已删除值
-      logic-not-delete-value: 0   # 逻辑未删除值

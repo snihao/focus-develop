@@ -14,6 +14,7 @@
         <module>focus-oauth</module>
         <module>focus-basedata</module>
         <module>focus-demo</module>
+        <module>focus-flink</module>
     </modules>
 
 </project>

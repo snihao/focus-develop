@@ -19,6 +19,7 @@ public class BaseEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
     /**
      * id
      */
@@ -48,17 +49,4 @@ public class BaseEntity implements Serializable {
      */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
-
-    /**
-     * 版本
-     */
-    @TableField(fill = FieldFill.UPDATE)
-    private Long version;
-
-    /**
-     * 逻辑删除标识（0：未删除，1：已删除）
-     */
-    @TableLogic
-    @TableField(fill = FieldFill.INSERT)
-    private Integer deleted;
 }

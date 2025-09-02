@@ -1,0 +1,104 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.focus</groupId>
+        <artifactId>focus-dependencies</artifactId>
+        <version>${revision}</version>
+        <relativePath>../focus-dependencies/pom.xml</relativePath>
+    </parent>
+    <artifactId>focus-flink</artifactId>
+    <packaging>pom</packaging>
+    <description>Flink集成模块</description>
+
+    <modules>
+        <module>focus-flink-core</module>
+        <module>focus-flink-kafka-consumption</module>
+    </modules>
+
+    <properties>
+        <flink.version>1.17.2</flink.version>
+        <kafka.version>3.6.1</kafka.version>
+        <flink.connector.kafka.version>3.0.2-1.17</flink.connector.kafka.version>
+        <flink.connector.jdbc.version>3.1.0-1.16</flink.connector.jdbc.version>
+        <flink.connector.base.version>1.17.2</flink.connector.base.version>
+        <mysql.cdc.version>2.4.2</mysql.cdc.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Flink 核心依赖 -->
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-streaming-java</artifactId>
+                <version>${flink.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-clients</artifactId>
+                <version>${flink.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-runtime-web</artifactId>
+                <version>${flink.version}</version>
+            </dependency>
+
+            <!-- Flink 连接器基础 -->
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-connector-base</artifactId>
+                <version>${flink.connector.base.version}</version>
+            </dependency>
+
+            <!-- Flink Table API -->
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-table-api-java-bridge</artifactId>
+                <version>${flink.version}</version>
+            </dependency>
+
+            <!-- Flink Table Runtime -->
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-table-runtime</artifactId>
+                <version>${flink.version}</version>
+            </dependency>
+
+            <!-- Flink Kafka 连接器 -->
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-connector-kafka</artifactId>
+                <version>${flink.connector.kafka.version}</version>
+            </dependency>
+
+            <!-- Flink JDBC 连接器 -->
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-connector-jdbc</artifactId>
+                <version>${flink.connector.jdbc.version}</version>
+            </dependency>
+
+            <!-- MySQL CDC 连接器 -->
+            <dependency>
+                <groupId>com.ververica</groupId>
+                <artifactId>flink-connector-mysql-cdc</artifactId>
+                <version>${mysql.cdc.version}</version>
+            </dependency>
+
+            <!-- Kafka 客户端 -->
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka-clients</artifactId>
+                <version>${kafka.version}</version>
+            </dependency>
+
+            <!-- 内部模块依赖 -->
+            <dependency>
+                <groupId>com.focus</groupId>
+                <artifactId>focus-flink-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>

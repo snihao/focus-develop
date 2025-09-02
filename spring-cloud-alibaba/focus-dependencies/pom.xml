@@ -253,6 +253,13 @@
                 <artifactId>focus-gateway</artifactId>
                 <version>${revision}</version>
             </dependency>
+
+            <!-- Flink模块 -->
+            <dependency>
+                <groupId>com.focus</groupId>
+                <artifactId>focus-flink-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

@@ -15,7 +15,11 @@ import org.springframework.data.elasticsearch.annotations.Document;
 @Document(indexName = "poetry_index")
 public class ElasticPoetry {
 
+    /**
+     * id
+     */
     private String id;
+
     /**
      * 标题
      */

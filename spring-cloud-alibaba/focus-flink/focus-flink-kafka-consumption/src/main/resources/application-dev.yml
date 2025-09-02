@@ -1,0 +1,40 @@
+spring:
+  datasource:
+    driver-class-name: com.p6spy.engine.spy.P6SpyDriver
+    hikari:
+      maximum-pool-size: 20  # 最大连接池大小
+      minimum-idle: 10         # 最小空闲连接数
+      idle-timeout: 30000     # 连接在池中的最大空闲时间，单位为毫秒
+      max-lifetime: 1800000   # 连接的最大生命周期，单位为毫秒
+      connection-timeout: 30000 # 从连接池获取连接的超时时间，单位为毫秒
+    url: jdbc:p6spy:mysql://localhost:3306/focus_admin?serverTimezone=GMT%2B8&allowMultiQueries=true
+    username: root
+    password: JZ8Qrd,ZlkPHs
+
+  # Kafka配置
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: flink-cdc-consumption-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: false  # 手动提交
+      max-poll-records: 10
+    listener:
+      ack-mode: manual
+
+# 日志配置
+logging:
+  level:
+    com.focus: info
+    org.springframework.kafka: info
+    # 输出详细SQL日志(调试用)
+    # tracer: TRACE
+
+# 应用自定义配置
+app:
+  cdc:
+    topic: test-topic
+    batch-size: 100
+    retry-times: 3
