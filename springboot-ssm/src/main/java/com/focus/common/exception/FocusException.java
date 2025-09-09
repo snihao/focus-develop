@@ -20,6 +20,11 @@ public class FocusException extends Exception{
         this.code = FocusResultCode.SYSTEM_ERROR.code();
     }
 
+    public FocusException(FocusResultCode resultCode) {
+        this.msg = resultCode.tips();
+        this.code = resultCode.code();
+    }
+
     public FocusException(String msg, String code) {
         this.msg = msg;
         this.code = code;
