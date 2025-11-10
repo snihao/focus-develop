@@ -82,4 +82,4 @@ sa-token:
   is-log: false
 
 focus:
-  sign: false #是否开启签名验证
+  sign: true #是否开启签名验证

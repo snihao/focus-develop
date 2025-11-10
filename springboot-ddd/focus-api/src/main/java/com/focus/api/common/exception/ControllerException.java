@@ -32,7 +32,7 @@ public class ControllerException {
     }
 
     /**
-     * 限流异常处理
+     * Sa-Token 未登录异常处理
      */
     @ResponseBody
     @ExceptionHandler(value = NotLoginException.class)
