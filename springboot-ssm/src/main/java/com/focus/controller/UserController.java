@@ -25,8 +25,8 @@ public class UserController {
     // 测试登录状态，浏览器访问： http://localhost:1955/user/eqUserId
     @GetMapping("eqUserId")
     public String eqUserId() {
-        Object loginId = StpUtil.getLoginId();
-        return "当前用户ID：" + loginId;
+        long uid = StpUtil.getLoginIdAsLong();
+        return "当前用户ID：" + uid;
     }
 
     // 测试登录状态，浏览器访问： http://localhost:1955/user/logout
