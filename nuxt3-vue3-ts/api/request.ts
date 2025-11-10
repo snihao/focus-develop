@@ -2,8 +2,11 @@ import axios from 'axios';
 import { createDiscreteApi } from 'naive-ui';
 import type { Ref } from 'vue';
 import type { UseFetchOptions } from 'nuxt/app';
+import { sha256 } from '~/util/sha256';
+import { v4 as uuidv4 } from 'uuid';
 
 const BASE_URL = 'http://127.0.0.1:0509/';
+const SECRET_KEY = 'a05ed3cfc27746dc532405a7bdd75f52c2971ccd9dc520b3c780ce4f4bbdee0b';
 /**
  * @description: 服务端渲染请求
  * @param data 请求数据
@@ -17,7 +20,7 @@ export const ssrApi = <T>(
   // @ts-ignore
   return useFetch(data.url, {
     ...options,
-    baseURL: BASE_URL,
+    baseURL: getUrl('API_URL', BASE_URL),
     timeout: 20000,
     method: data.method,
     headers: {
@@ -51,14 +54,43 @@ const errorNotification = () => {
   });
 };
 
+const methodMap = {
+  get: 'GET',
+  post: 'POST',
+  put: 'PUT',
+  delete: 'DELETE',
+  patch: 'PATCH',
+  options: 'OPTIONS',
+  head: 'HEAD'
+};
+
+/**
+ * 签名加密函数
+ * @param config axios请求配置对象
+ * @description 根据请求参数生成签名，用于API安全验证
+ */
+function signEncrypt(config: any) {
+  const timestamp = Date.now();
+  const urlParts = config.url.split('?');
+  const urlPath = urlParts[0];
+  const url = urlPath.startsWith('/') ? urlPath : '/' + urlPath;
+  const nonce = uuidv4();
+  const sign = `URI=/api${url}&Method=${methodMap[config.method as keyof typeof methodMap]}&Timestamp=${timestamp}&Nonce=${nonce}`;
+  config.headers['x-Sign'] = sha256(SECRET_KEY + sign);
+  config.headers['x-Nonce'] = nonce;
+  config.headers['x-Timestamp'] = timestamp;
+}
+
 requests.interceptors.request.use(
   (config: any) => {
-    const store = localStorage.getItem('ego');
+    config.baseURL = getUrl('API_URL', BASE_URL);
+    const store = localStorage.getItem('home');
     if (store && JSON.parse(store).token) {
       config.headers.Authorization = JSON.parse(store).token;
     } else {
       config.headers.Authorization = 'null';
     }
+    signEncrypt(config);
     loadingBar.start();
     return config;
   },
@@ -82,5 +114,16 @@ requests.interceptors.response.use(
     return error.request;
   }
 );
+
+export function getUrl(key: string, defaultValue?: string) {
+  if (import.meta.server) {
+    return process.env['NUXT_PUBLIC_' + key] || defaultValue;
+  } else {
+    const {
+      public: { [key]: value }
+    } = useRuntimeConfig();
+    return value;
+  }
+}
 
 export default requests;

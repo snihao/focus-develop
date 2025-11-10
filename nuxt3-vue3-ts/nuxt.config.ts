@@ -7,6 +7,12 @@ import {NaiveUiResolver} from 'unplugin-vue-components/resolvers';
 export default defineNuxtConfig({
     compatibilityDate: '2024-11-01',
     devtools: {enabled: true},
+    runtimeConfig: {
+        public: {
+            API_URL: process.env.NUXT_PUBLIC_API_URL,
+            WS_URL: process.env.NUXT_PUBLIC_WS_URL,
+        }
+    },
     build: {
         transpile: [
             'vueuc',
