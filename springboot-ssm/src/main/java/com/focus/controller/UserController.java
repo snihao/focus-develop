@@ -2,6 +2,7 @@ package com.focus.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.focus.common.exception.FocusException;
+import com.focus.common.interceptor.FocusLoginUser;
 import com.focus.common.util.FocusResult;
 import com.focus.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +25,7 @@ public class UserController {
 
     // 测试登录状态，浏览器访问： http://localhost:1955/user/eqUserId
     @GetMapping("eqUserId")
-    public String eqUserId() {
-        long uid = StpUtil.getLoginIdAsLong();
+    public String eqUserId(@FocusLoginUser Long uid) {
         return "当前用户ID：" + uid;
     }
 
