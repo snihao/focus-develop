@@ -24,7 +24,7 @@ export const ssrApi = <T>(
     timeout: 20000,
     method: data.method,
     headers: {
-      Authorization: store && JSON.parse(store).token ? JSON.parse(store).token : 'null'
+      "focus-sa-token": store && JSON.parse(store).token ? JSON.parse(store).token : 'null'
     },
     params: data?.data,
     $fetch: useNuxtApp().$api as typeof $fetch
@@ -85,11 +85,7 @@ requests.interceptors.request.use(
   (config: any) => {
     config.baseURL = getUrl('API_URL', BASE_URL);
     const store = localStorage.getItem('home');
-    if (store && JSON.parse(store).token) {
-      config.headers.Authorization = JSON.parse(store).token;
-    } else {
-      config.headers.Authorization = 'null';
-    }
+    config.headers['focus-sa-token'] = store && JSON.parse(store).token ? JSON.parse(store).token : 'null';
     signEncrypt(config);
     loadingBar.start();
     return config;
