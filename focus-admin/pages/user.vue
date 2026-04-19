@@ -1,6 +1,8 @@
 <template>
-  <div class="w-full h-full p-1.5">
-    <div class="p-3 box-border mb-2.5 sticky top-0 z-[999] shadow-sm rounded-xl" :class="themeClass('box-bg')">
+  <div class="w-full h-full bg-paper dark:bg-ink-deep font-display text-ink dark:text-paper/90 overflow-auto p-6 max-sm:p-4">
+    <!-- 过滤栏 -->
+    <section
+      class="mb-5 sticky top-0 z-[8] border border-ink/15 dark:border-paper/10 bg-paper-deep/85 dark:bg-ink-raised/85 backdrop-blur px-5 py-4">
       <FocusFilterForm
         v-model="filterData"
         :fields="filterFields"
@@ -10,20 +12,24 @@
         @reset="onSearch"
         @add="handleAdd"
         @delete="handleMultipleDelete" />
-    </div>
+    </section>
 
-    <n-data-table
-      :style="`--n-merged-th-color:${theme ? '#35364E' : '#DBDDF4'}`"
-      :bordered="false"
-      :single-line="false"
-      :columns="tableHeader"
-      :data="data"
-      :loading="loading"
-      :row-key="(row: EmpInfo) => row.id"
-      :pagination="pagination"
-      remote
-      @update:checked-row-keys="handleCheck" />
+    <!-- 表格卡 -->
+    <section class="border border-ink/15 dark:border-paper/10 bg-white/50 dark:bg-ink-raised">
+      <n-data-table
+        :style="tableCssVars"
+        :bordered="false"
+        :single-line="false"
+        :columns="tableHeader"
+        :data="data"
+        :loading="loading"
+        :row-key="(row: EmpInfo) => row.id"
+        :pagination="pagination"
+        remote
+        @update:checked-row-keys="handleCheck" />
+    </section>
 
+    <!-- 新增 / 编辑 / 查看 -->
     <FocusEditModal
       v-model:show="showEditModal"
       v-model:formData="editFormData"
@@ -56,6 +62,13 @@ const message = useMessage();
 const dialog = useDialog();
 const userStore = useUserStore();
 
+const tableCssVars = computed(() => ({
+  '--n-merged-th-color': theme?.value ? '#1f2026' : '#ebe4d6',
+  '--n-th-text-color': theme?.value ? '#f4efe7' : '#1a1a1a',
+  '--n-td-text-color': theme?.value ? '#e4ddd0' : '#1a1a1a',
+  '--n-th-font-weight': '600'
+}));
+
 const filterFields = new FormFieldBuilder()
   .addNameInput({ key: 'name', label: '姓名' })
   .addNameInput({ key: 'phone', label: '手机号' })
@@ -76,7 +89,11 @@ async function loadRoles() {
   }
 }
 onMounted(() => {
-  if (import.meta.client) loadRoles();
+  // 客户端挂载时强制刷新，保证读取到 localStorage 的最新数据
+  if (import.meta.client) {
+    loadRoles();
+    refresh();
+  }
 });
 
 const { pagination, refresh, loading, data, onSearch } = usePagination<EmpInfo>({
@@ -87,31 +104,83 @@ const { pagination, refresh, loading, data, onSearch } = usePagination<EmpInfo>(
 
 const tableHeader = computed<DataTableColumns<EmpInfo>>(() => [
   { type: 'selection' },
-  { title: 'id', key: 'id', align: 'center' },
-  { title: '姓名', key: 'name', align: 'center' },
-  { title: '手机号', key: 'phone', align: 'center', render(row) { return maskPhoneNumber(row.phone); } },
+  { title: 'ID', key: 'id', align: 'center', width: 64 },
   {
-    title: '性别', key: 'gender', align: 'center',
-    render(row) { return row.gender === 1 ? '男' : '女'; }
-  },
-  {
-    title: '状态', key: 'status', align: 'center',
+    title: '姓名',
+    key: 'name',
+    align: 'center',
     render(row) {
-      return h(NSwitch, {
-        value: Number(row.status),
-        disabled: !userStore.hasPermissions(['user:disable']),
-        'checked-value': 1, 'unchecked-value': 0,
-        'onUpdate:value': async () => { await disableEmp([row.id]); refresh(); }
-      }, { checked: () => '启用', unchecked: () => '禁用' });
+      return h('div', { class: 'flex items-center justify-center gap-2' }, [
+        h('img', {
+          src: row.photo,
+          alt: row.name,
+          class: 'w-7 h-7 rounded-full border border-ink/20 dark:border-paper/20 object-cover'
+        }),
+        h('span', { class: 'font-display text-ink dark:text-paper' }, row.name)
+      ]);
     }
   },
   {
-    title: '角色', key: 'roles', align: 'center',
+    title: '手机号',
+    key: 'phone',
+    align: 'center',
     render(row) {
-      return (row.roles || []).map(r => h(NTag, { type: 'info', class: 'mr-1' }, { default: () => r.name }));
+      return h('span', { class: 'font-mono text-[12px] text-ink dark:text-paper' }, maskPhoneNumber(row.phone));
     }
   },
-  { title: '创建时间', key: 'createDate', align: 'center', render(row) { return getDateFormat(row.createDate); } },
+  {
+    title: '性别',
+    key: 'gender',
+    align: 'center',
+    width: 72,
+    render(row) {
+      return row.gender === 1 ? '男' : '女';
+    }
+  },
+  {
+    title: '状态',
+    key: 'status',
+    align: 'center',
+    width: 128,
+    render(row) {
+      return h(
+        NSwitch,
+        {
+          value: Number(row.status),
+          disabled: !userStore.hasPermissions(['user:disable']),
+          'checked-value': 1,
+          'unchecked-value': 0,
+          'onUpdate:value': async () => {
+            await disableEmp([row.id]);
+            refresh();
+          }
+        },
+        { checked: () => '启用', unchecked: () => '禁用' }
+      );
+    }
+  },
+  {
+    title: '角色',
+    key: 'roles',
+    align: 'center',
+    render(row) {
+      const roles = row.roles || [];
+      if (!roles.length) return h('span', { class: 'font-mono text-[11px] text-ink-soft dark:text-paper/40' }, '—');
+      return h(
+        'div',
+        { class: 'flex flex-wrap items-center justify-center gap-1' },
+        roles.map((r) => h(NTag, { bordered: false, type: 'default', size: 'small' }, { default: () => r.name }))
+      );
+    }
+  },
+  {
+    title: '创建时间',
+    key: 'createDate',
+    align: 'center',
+    render(row) {
+      return h('span', { class: 'font-mono text-[12px] text-ink-mid dark:text-paper/60' }, getDateFormat(row.createDate));
+    }
+  },
   getTableActions({
     viewBtn: { onClick: handleView },
     editBtn: { onClick: handleEdit, show: userStore.hasPermissions(['user:update']) },
@@ -135,39 +204,50 @@ const editFormData = ref<Record<string, any>>({
 const editRules: FormRules = {
   name: { required: true, message: '请输入姓名', trigger: 'blur' },
   phone: [
-    { required: true, message: '请输入手机号', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: ['input', 'blur'] }
+    { required: true, message: '请输入手机号', trigger: 'blur' }
   ]
 };
 
 const editFormTitle = computed(() => {
   switch (type.value) {
-    case 'add': return '新增员工';
-    case 'edit': return '编辑员工';
-    default: return '查看员工';
+    case 'add':
+      return '新增员工';
+    case 'edit':
+      return '编辑员工';
+    default:
+      return '查看员工';
   }
 });
 
 function handleView(row: EmpInfo) {
   type.value = 'view';
-  editFormData.value = { ...row, id: row.id.toString(), roleIds: (row.roles || []).map(r => r.roleId) };
+  editFormData.value = { ...row, id: row.id.toString(), roleIds: (row.roles || []).map((r) => r.roleId) };
   showEditModal.value = true;
 }
 
 function handleEdit(row: EmpInfo) {
   type.value = 'edit';
-  editFormData.value = { ...row, id: row.id.toString(), roleIds: (row.roles || []).map(r => r.roleId) };
+  editFormData.value = { ...row, id: row.id.toString(), roleIds: (row.roles || []).map((r) => r.roleId) };
   showEditModal.value = true;
 }
 
 function handleDelete(row: EmpInfo) {
+  if (Number(row.id) === 1) {
+    message.warning('不能删除演示账号');
+    return;
+  }
   dialog.warning({
     title: '警告',
     content: `确定要删除员工：${row.name}吗？`,
-    positiveText: '确定', negativeText: '取消', draggable: true,
+    positiveText: '确定',
+    negativeText: '取消',
+    draggable: true,
     onPositiveClick: () => {
-      delEmp([row.id]).then(res => {
-        if (Number(res.code) === 200) { message.success('删除成功'); refresh(); }
+      delEmp([row.id]).then((res) => {
+        if (Number(res.code) === 200) {
+          message.success('删除成功');
+          refresh();
+        }
       });
     }
   });
@@ -175,19 +255,27 @@ function handleDelete(row: EmpInfo) {
 
 function handleSave(val: EmpUpdateParams) {
   if (type.value === 'edit') {
-    updateEmp(val).then(res => {
-      if (Number(res.code) === 200) { message.success('更新成功'); refresh(); }
+    updateEmp(val).then((res) => {
+      if (Number(res.code) === 200) {
+        message.success('更新成功');
+        refresh();
+      }
     });
   } else if (type.value === 'add') {
     const { id, ...rest } = val as any;
-    addEmp(rest).then(res => {
-      if (Number(res.code) === 200) { message.success('新增成功'); refresh(); }
+    addEmp(rest).then((res) => {
+      if (Number(res.code) === 200) {
+        message.success('新增成功');
+        refresh();
+      }
     });
   }
 }
 
 const checkedRowKeysRef = ref<DataTableRowKey[]>([]);
-function handleCheck(rowKeys: DataTableRowKey[]) { checkedRowKeysRef.value = rowKeys; }
+function handleCheck(rowKeys: DataTableRowKey[]) {
+  checkedRowKeysRef.value = rowKeys;
+}
 
 const handleAdd = async () => {
   type.value = 'add';
@@ -197,14 +285,27 @@ const handleAdd = async () => {
 };
 
 const handleMultipleDelete = () => {
-  if (checkedRowKeysRef.value.length === 0) { message.warning('请选择要删除的员工'); return; }
+  if (checkedRowKeysRef.value.length === 0) {
+    message.warning('请选择要删除的员工');
+    return;
+  }
+  const ids = (checkedRowKeysRef.value as number[]).filter((id) => id !== 1);
+  if (ids.length === 0) {
+    message.warning('演示账号不可删除');
+    return;
+  }
   dialog.warning({
     title: '警告',
-    content: `确定要删除以下${checkedRowKeysRef.value.length}个员工吗？`,
-    positiveText: '确定', negativeText: '取消', draggable: true,
+    content: `确定要删除以下${ids.length}个员工吗？`,
+    positiveText: '确定',
+    negativeText: '取消',
+    draggable: true,
     onPositiveClick: () => {
-      delEmp(checkedRowKeysRef.value as number[]).then(res => {
-        if (Number(res.code) === 200) { message.success('删除成功'); refresh(); }
+      delEmp(ids).then((res) => {
+        if (Number(res.code) === 200) {
+          message.success('删除成功');
+          refresh();
+        }
       });
     }
   });

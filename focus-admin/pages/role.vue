@@ -1,6 +1,8 @@
 <template>
-  <div class="w-full h-full p-1.5">
-    <div class="p-3 box-border mb-2.5 sticky top-0 z-[999] shadow-sm rounded-xl" :class="themeClass('box-bg')">
+  <div class="w-full h-full bg-paper dark:bg-ink-deep font-display text-ink dark:text-paper/90 overflow-auto p-6 max-sm:p-4">
+    <!-- 过滤栏 -->
+    <section
+      class="mb-5 sticky top-0 z-[8] border border-ink/15 dark:border-paper/10 bg-paper-deep/85 dark:bg-ink-raised/85 backdrop-blur px-5 py-4">
       <FocusFilterForm
         v-model="filterData"
         :fields="filterFields"
@@ -10,20 +12,24 @@
         @reset="onSearch"
         @add="handleAdd"
         @delete="handleMultipleDelete" />
-    </div>
+    </section>
 
-    <n-data-table
-      :style="`--n-merged-th-color:${theme ? '#35364E' : '#DBDDF4'}`"
-      :bordered="false"
-      :single-line="false"
-      :columns="tableHeader"
-      :data="data"
-      :loading="loading"
-      :row-key="(row) => row.id"
-      :pagination="pagination"
-      remote
-      @update:checked-row-keys="handleCheck" />
+    <!-- 表格卡 -->
+    <section class="border border-ink/15 dark:border-paper/10 bg-white/50 dark:bg-ink-raised">
+      <n-data-table
+        :style="tableCssVars"
+        :bordered="false"
+        :single-line="false"
+        :columns="tableHeader"
+        :data="data"
+        :loading="loading"
+        :row-key="(row) => row.id"
+        :pagination="pagination"
+        remote
+        @update:checked-row-keys="handleCheck" />
+    </section>
 
+    <!-- 新增 / 编辑 / 查看 -->
     <FocusEditModal
       v-model:show="showEditModal"
       v-model:formData="editFormData"
@@ -49,18 +55,21 @@
 </template>
 
 <script lang="ts" setup>
-import { type DataTableColumns, type DataTableRowKey, NSwitch, type FormRules, type FormItemRule, type TreeSelectOption } from 'naive-ui';
+import { type DataTableColumns, type DataTableRowKey, NSwitch, NTag, type FormRules, type FormItemRule, type TreeSelectOption } from 'naive-ui';
 import { eqRole, upRole, delRole, disableRole, addRole, type Role, eqRoleMenu } from '@/api/role';
 import { getBaseMenuList } from '@/api/menu';
-
-// definePageMeta({
-//   permissions: ['role:add']
-// });
 
 const theme = inject<Ref<boolean>>('theme');
 const message = useMessage();
 const dialog = useDialog();
 const userStore = useUserStore();
+
+const tableCssVars = computed(() => ({
+  '--n-merged-th-color': theme?.value ? '#1f2026' : '#ebe4d6',
+  '--n-th-text-color': theme?.value ? '#f4efe7' : '#1a1a1a',
+  '--n-td-text-color': theme?.value ? '#e4ddd0' : '#1a1a1a',
+  '--n-th-font-weight': '600'
+}));
 
 const filterFields = new FormFieldBuilder()
   .addNameInput({ key: 'name', label: '名称' })
@@ -71,12 +80,12 @@ const filterFields = new FormFieldBuilder()
 const filterData = ref(generateInitialFormData(filterFields));
 
 const { data: baseMenuList, refresh: refreshBaseMenuList } = useAsyncData('baseMenuList', getBaseMenuList, {
-  default: () => ({
-    data: [] as TreeSelectOption[]
-  })
+  default: () => ({ data: [] as TreeSelectOption[] })
 });
 onMounted(() => {
-  if (import.meta.client && !baseMenuList.value?.data?.length) {
+  // 客户端挂载时强制刷新，保证读取到 localStorage 的最新菜单
+  if (import.meta.client) {
+    refresh();
     refreshBaseMenuList();
   }
 });
@@ -90,28 +99,25 @@ function handleUpdateValue(value: string | number | Array<string | number> | nul
 const { pagination, refresh, loading, data, onSearch } = usePagination({
   handler: eqRole,
   handleKey: 'roleList',
-  params: computed(() => {return filterData.value;})
+  params: computed(() => ({ ...filterData.value }))
 });
 
 const type = ref<'add' | 'edit' | 'view'>('view');
 const showEditModal = ref(false);
 
 watch(showEditModal, (newVal) => {
-  if (!newVal) {
-    menuDefaultValue.value = [];
-  }
+  if (!newVal) menuDefaultValue.value = [];
 });
 
 const tableHeader = computed<DataTableColumns<Role>>(() => [
-  {
-    type: 'selection'
-  },
-  { title: 'id', key: 'id', align: 'center' },
+  { type: 'selection' },
+  { title: 'ID', key: 'id', align: 'center', width: 64 },
   { title: '名称', key: 'name', align: 'center' },
   {
     title: '状态',
     key: 'status',
     align: 'center',
+    width: 128,
     render(row) {
       return h(
         NSwitch,
@@ -120,7 +126,7 @@ const tableHeader = computed<DataTableColumns<Role>>(() => [
           disabled: !userStore.hasPermissions(['role:disable']),
           'checked-value': 1,
           'unchecked-value': 0,
-          'onUpdate:value': async (val: number) => {
+          'onUpdate:value': async () => {
             await disableRole([row.id]);
             refresh();
           }
@@ -132,19 +138,27 @@ const tableHeader = computed<DataTableColumns<Role>>(() => [
   {
     title: '标识',
     key: 'mark',
-    align: 'center'
+    align: 'center',
+    render(row) {
+      return h('span', { class: 'font-mono text-[12px] text-ink dark:text-paper' }, row.mark);
+    }
   },
   {
-    title: '描述',
-    key: 'description',
-    align: 'center'
+    title: '菜单权限',
+    key: 'menuIdList',
+    align: 'center',
+    render(row) {
+      const count = Array.isArray(row.menuIdList) ? row.menuIdList.length : 0;
+      return h(NTag, { bordered: false, type: count > 0 ? 'default' : 'warning' }, { default: () => `${count} 项` });
+    }
   },
+  { title: '描述', key: 'description', align: 'center' },
   {
     title: '创建时间',
     key: 'createDate',
     align: 'center',
     render(row) {
-      return getDateFormat(row.createDate);
+      return h('span', { class: 'font-mono text-[12px] text-ink-mid dark:text-paper/60' }, getDateFormat(row.createDate));
     }
   },
   {
@@ -152,7 +166,7 @@ const tableHeader = computed<DataTableColumns<Role>>(() => [
     key: 'updateDate',
     align: 'center',
     render(row) {
-      return getDateFormat(row.updateDate);
+      return h('span', { class: 'font-mono text-[12px] text-ink-mid dark:text-paper/60' }, getDateFormat(row.updateDate));
     }
   },
   getTableActions({
@@ -176,30 +190,19 @@ const editFormData = ref<{
   menuIdList: number[];
 }>({
   ...generateInitialFormData(editFields),
-  menuIdList: [] as number[]
+  menuIdList: []
 });
 
 const editRules: FormRules = {
-  name: {
-    required: true,
-    message: '请输入角色名称',
-    trigger: 'blur'
-  },
-  mark: {
-    required: true,
-    message: '请输入角色标识',
-    trigger: 'blur'
-  },
+  name: { required: true, message: '请输入角色名称', trigger: 'blur' },
+  mark: { required: true, message: '请输入角色标识', trigger: 'blur' },
   menuIdList: [
     {
       required: true,
       message: '请选择菜单',
       trigger: 'blur',
-      validator: (rule: FormItemRule, val: number[]) => {
-        console.log(val, 'val');
-        if (val.length === 0) {
-          return new Error('请选择菜单');
-        }
+      validator: (_rule: FormItemRule, val: number[]) => {
+        if (!val || val.length === 0) return new Error('请选择菜单');
         return true;
       }
     }
@@ -212,8 +215,6 @@ const editFormTitle = computed(() => {
       return '新增角色';
     case 'edit':
       return '编辑角色';
-    case 'view':
-      return '查看角色';
     default:
       return '查看角色';
   }
@@ -284,10 +285,6 @@ function handleCheck(rowKeys: DataTableRowKey[]) {
   checkedRowKeysRef.value = rowKeys;
 }
 
-/**
- * 处理新增操作
- * 触发新增事件并传递当前表单数据
- */
 const handleAdd = async () => {
   type.value = 'add';
   await refreshBaseMenuList();
@@ -298,10 +295,6 @@ const handleAdd = async () => {
   showEditModal.value = true;
 };
 
-/**
- * 处理删除操作
- * 触发删除事件并传递当前表单数据
- */
 const handleMultipleDelete = () => {
   if (checkedRowKeysRef.value.length === 0) {
     message.warning('请选择要删除的角色');

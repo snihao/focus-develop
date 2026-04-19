@@ -1,7 +1,14 @@
 <template>
-  <div class="h-full app-left-nav shadow-[0_0.2px_0.2px_0.2px_#b2b2b2] z-[9]">
-    <n-layout has-sider class="h-full">
-      <n-layout-sider bordered collapse-mode="width" :collapsed-width="64" :width="240" style="height: 100%" show-trigger>
+  <aside class="h-full relative z-[9] bg-paper-deep dark:bg-ink text-ink dark:text-paper border-r border-ink/15 dark:border-paper/10">
+    <n-layout has-sider class="h-full !bg-transparent">
+      <n-layout-sider
+        :native-scrollbar="false"
+        :collapse-mode="'width'"
+        :collapsed-width="64"
+        :width="240"
+        :style="siderCssVars"
+        class="h-full !bg-transparent"
+        show-trigger>
         <n-menu
           ref="menuInstRef"
           :value="menu.key"
@@ -9,10 +16,11 @@
           :collapsed-width="64"
           :collapsed-icon-size="22"
           :options="store.menuOptions"
+          :theme-overrides="menuThemeOverrides"
           @update:value="chooseMenu" />
       </n-layout-sider>
     </n-layout>
-  </div>
+  </aside>
 </template>
 
 <script setup lang="ts">
@@ -33,26 +41,57 @@ const emit = defineEmits(['chooseMenu']);
 const store = useStore();
 const router = useRouter();
 const userStore = useUserStore();
+const theme = inject<Ref<boolean>>('theme');
 
 const menu = ref({} as any);
 
+// 侧栏 Naive UI 的背景色用 CSS 变量覆盖，保持纸色或墨色
+const siderCssVars = computed(() => ({
+  '--n-color': theme?.value ? '#1a1a1a' : '#ebe4d6',
+  '--n-border-color': theme?.value ? 'rgba(244, 239, 231, 0.1)' : 'rgba(26, 26, 26, 0.15)',
+  '--n-toggle-button-color': theme?.value ? '#1f1f24' : '#f4efe7',
+  '--n-toggle-button-icon-color': theme?.value ? '#f4efe7' : '#1a1a1a'
+}));
+
+// n-menu 的主题覆盖：墨/纸色系 + 朱砂激活
+const menuThemeOverrides = computed(() => {
+  const isDark = !!theme?.value;
+  return {
+    itemTextColor: isDark ? '#c5bdb1' : '#4a4a4a',
+    itemIconColor: isDark ? '#c5bdb1' : '#4a4a4a',
+    itemTextColorHover: isDark ? '#f4efe7' : '#1a1a1a',
+    itemIconColorHover: isDark ? '#f4efe7' : '#1a1a1a',
+    itemColorActive: isDark ? 'rgba(200, 55, 45, 0.15)' : 'rgba(200, 55, 45, 0.08)',
+    itemColorActiveCollapsed: isDark ? 'rgba(200, 55, 45, 0.15)' : 'rgba(200, 55, 45, 0.08)',
+    itemColorActiveHover: isDark ? 'rgba(200, 55, 45, 0.2)' : 'rgba(200, 55, 45, 0.12)',
+    itemTextColorActive: '#c8372d',
+    itemTextColorActiveHover: '#c8372d',
+    itemIconColorActive: '#c8372d',
+    itemIconColorActiveHover: '#c8372d',
+    itemTextColorChildActive: '#c8372d',
+    itemIconColorChildActive: '#c8372d',
+    itemTextColorChildActiveHover: '#c8372d',
+    itemIconColorChildActiveHover: '#c8372d',
+    arrowColor: isDark ? '#c5bdb1' : '#4a4a4a',
+    arrowColorActive: '#c8372d',
+    fontSize: '14px',
+    borderRadius: '0px'
+  };
+});
+
 const renderIcon = (iconName: string) => {
-  // 检查 iconName 是否有效且存在于 Icons 中
   const iconComp = Icons[iconName as keyof typeof Icons];
   if (!iconComp) return undefined;
   return () => h(NIcon, null, { default: () => h(iconComp) });
 };
 
 const { data: menuList, refresh: refreshMenuList } = useAsyncData('empMenuList', getEmpMenuList, {
-  default: () => ({
-    data: []
-  })
+  default: () => ({ data: [] })
 });
 
 onMounted(() => {
-  if (!menuList.value.data.length) {
-    refreshMenuList();
-  }
+  // 客户端挂载时强制刷新，保证读取到 localStorage 的最新菜单
+  if (import.meta.client) refreshMenuList();
 });
 
 watch(menuList, (newVal) => {
@@ -63,9 +102,7 @@ watch(menuList, (newVal) => {
 
 const findMenuOption = (opts: MenuOption[], key: string | number): MenuOption | undefined => {
   for (const opt of opts) {
-    if (opt.key === key) {
-      return opt;
-    }
+    if (opt.key === key) return opt;
     if (opt.children) {
       const found = findMenuOption(opt.children, key);
       if (found) return found;
@@ -84,13 +121,10 @@ watch(
 
       handlePermissions(newVal);
 
-      // 尝试恢复选中的菜单（为了恢复 icon）
       if (store.chooseNav && store.chooseNav.key) {
         const foundOption = findMenuOption(options, store.chooseNav.key);
         if (foundOption) {
-          // 更新选中的菜单，恢复 icon
           store.setChooseNav(foundOption);
-          // 同时也更新当前组件内的 menu 状态，确保高亮正确
           menu.value = foundOption;
         }
       }
@@ -125,31 +159,24 @@ function convertToMenuOptions(menuItems: Menu[]): MenuOption[] {
   }, []);
 }
 
-// 处理权限
+// 收集菜单 mark 作为权限集合
 function handlePermissions(list: Menu[] = []) {
   const permissions = new Set<string>();
 
-  // 递归处理菜单项及其子菜单，收集所有权限标记
   const collectPermissions = (menuItems: Menu[]) => {
     if (!Array.isArray(menuItems)) return;
-
     menuItems.forEach((item) => {
-      // 添加当前菜单项的权限标记
       if (item.mark && typeof item.mark === 'string' && item.mark.trim() !== '') {
         permissions.add(item.mark);
       }
-
-      // 递归处理子菜单
       if (Array.isArray(item.children) && item.children.length > 0) {
         collectPermissions(item.children);
       }
     });
   };
 
-  // 优先使用传入的 list，否则尝试使用 menuList.value.data
   const dataToProcess = list.length > 0 ? list : (menuList.value?.data as Menu[]);
 
-  // 开始递归处理菜单数据
   if (Array.isArray(dataToProcess) && dataToProcess.length > 0) {
     collectPermissions(dataToProcess);
   }
@@ -164,7 +191,6 @@ const chooseMenu = (key: string, item: MenuOption) => {
   store.setChooseNav(item);
   menuInstRef.value?.showOption(key);
 
-  // 检查路由是否存在，如果不存在则跳转到404页面
   let targetPath = item.route || '';
 
   if (targetPath && !targetPath.startsWith('/') && !/^https?:\/\//.test(targetPath)) {
@@ -176,7 +202,6 @@ const chooseMenu = (key: string, item: MenuOption) => {
   if (routeExists) {
     navigateTo(targetPath);
   } else {
-    // 路由不存在，跳转到404页面
     navigateTo('/develop');
   }
 };
@@ -190,12 +215,10 @@ watch(
 
 const storeChoose = () => {
   if (store.chooseNav && store.chooseNav.key) {
-    // 尝试从当前的 menuOptions 中查找对应的菜单项，以确保获取到带有 icon 的最新对象
     const foundOption = store.menuOptions && store.menuOptions.length ? findMenuOption(store.menuOptions, store.chooseNav.key) : undefined;
     if (foundOption) {
       chooseMenu(foundOption.key as string, foundOption);
     } else {
-      // 降级处理：如果没有找到（可能是数据还没加载完），只能先使用 store.chooseNav
       chooseMenu(store.chooseNav.key, store.chooseNav);
     }
   } else {
@@ -207,9 +230,3 @@ onMounted(() => {
   storeChoose();
 });
 </script>
-
-<style lang="scss" scoped>
-:deep(.n-layout-toggle-button) {
-  right: 0.375rem;
-}
-</style>

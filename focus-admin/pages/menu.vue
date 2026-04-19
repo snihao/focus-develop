@@ -1,6 +1,8 @@
 <template>
-  <div class="w-full h-full p-1.5">
-    <div class="p-3 box-border mb-2.5 sticky top-0 z-[999] shadow-sm rounded-xl" :class="themeClass('box-bg')">
+  <div class="w-full h-full bg-paper dark:bg-ink-deep font-display text-ink dark:text-paper/90 overflow-auto p-6 max-sm:p-4">
+    <!-- 过滤栏 -->
+    <section
+      class="mb-5 sticky top-0 z-[8] border border-ink/15 dark:border-paper/10 bg-paper-deep/85 dark:bg-ink-raised/85 backdrop-blur px-5 py-4">
       <FocusFilterForm
         v-model="filterData"
         :fields="filterFields"
@@ -10,19 +12,23 @@
         @reset="refresh"
         @add="handleAdd"
         @delete="handleMultipleDelete" />
-    </div>
+    </section>
 
-    <n-data-table
-      :style="`--n-merged-th-color:${theme ? '#35364E' : '#DBDDF4'}`"
-      :bordered="false"
-      :single-line="false"
-      :columns="tableHeader"
-      :data="data?.data"
-      :loading="loading"
-      :row-key="(row) => row.id"
-      remote
-      @update:checked-row-keys="handleCheck" />
+    <!-- 表格卡 -->
+    <section class="border border-ink/15 dark:border-paper/10 bg-white/50 dark:bg-ink-raised">
+      <n-data-table
+        :style="tableCssVars"
+        :bordered="false"
+        :single-line="false"
+        :columns="tableHeader"
+        :data="data?.data"
+        :loading="loading"
+        :row-key="(row) => row.id"
+        remote
+        @update:checked-row-keys="handleCheck" />
+    </section>
 
+    <!-- 新增 / 编辑 / 查看 -->
     <FocusEditModal
       v-model:show="showEditModal"
       v-model:formData="editFormData"
@@ -52,32 +58,24 @@ import { type DataTableColumns, NTag, type DataTableRowKey, NIcon, NSwitch, type
 import { addMenu, queryMenuList, type Menu, delMenu, upMenu, disableMenu } from '@/api/menu';
 import * as Icons from '@vicons/ionicons5';
 
-// definePageMeta({
-//   permissions: ['menu:add']
-// });
-
 const theme = inject<Ref<boolean>>('theme');
 const message = useMessage();
 const dialog = useDialog();
 const userStore = useUserStore();
 
 const menuTypeMap = {
-  0: {
-    label: '目录',
-    value: 0,
-    type: 'info'
-  },
-  1: {
-    label: '菜单',
-    value: 1,
-    type: 'primary'
-  },
-  2: {
-    label: '按钮',
-    value: 2,
-    type: 'error'
-  }
+  0: { label: '目录', value: 0, type: 'info' },
+  1: { label: '菜单', value: 1, type: 'primary' },
+  2: { label: '按钮', value: 2, type: 'error' }
 };
+
+// 表格 CSS 变量：墨黑表头 + 象牙行背景，呼应编辑杂志美学
+const tableCssVars = computed(() => ({
+  '--n-merged-th-color': theme?.value ? '#1f2026' : '#ebe4d6',
+  '--n-th-text-color': theme?.value ? '#f4efe7' : '#1a1a1a',
+  '--n-td-text-color': theme?.value ? '#e4ddd0' : '#1a1a1a',
+  '--n-th-font-weight': '600'
+}));
 
 const filterFields = new FormFieldBuilder()
   .addNameInput({ key: 'name', label: '名称' })
@@ -89,57 +87,49 @@ const filterFields = new FormFieldBuilder()
 const filterData = ref(generateInitialFormData(filterFields));
 
 const { refresh, status, data } = useAsyncData('menu-list', () => queryMenuList(objArrayToString(filterData.value)), { default: () => ({ data: [] }) });
-const loading = computed(() => {
-  return !['success', 'error'].includes(status.value);
-});
+const loading = computed(() => !['success', 'error'].includes(status.value));
 
 onMounted(() => {
-  if (import.meta.client && !data.value.data.length) {
-    refresh();
-  }
+  // 客户端挂载时强制刷新，保证读取到 localStorage 的最新数据
+  if (import.meta.client) refresh();
 });
 
 const type = ref<'add' | 'edit' | 'view'>('view');
 const showEditModal = ref(false);
 
 const tableHeader = computed<DataTableColumns<Menu>>(() => [
-  {
-    type: 'selection'
-  },
-  { title: 'id', key: 'id', align: 'center' },
+  { type: 'selection' },
+  { title: 'ID', key: 'id', align: 'center', width: 64 },
   { title: '名称', key: 'name', align: 'center' },
   {
     title: '图标',
     key: 'icon',
     align: 'center',
+    width: 72,
     render(row) {
-      // 如果row.icon存在且是字符串，则动态渲染图标
       if (row.icon && typeof row.icon === 'string' && Icons[row.icon as keyof typeof Icons]) {
-        return h(NIcon, { size: 20 }, { default: () => h(Icons[row.icon as keyof typeof Icons]) });
+        return h(NIcon, { size: 18 }, { default: () => h(Icons[row.icon as keyof typeof Icons]) });
       }
-      // 如果图标不存在或无效，显示默认图标或空白
-      return h('div', { class: 'w-6 h-6' }, { default: () => h(NIcon, null, { default: () => h(Icons.HelpCircleOutline) }) });
+      return h('span', { class: 'text-ink-soft dark:text-paper/40 font-mono text-[11px]' }, '—');
     }
   },
   {
     title: '类型',
     key: 'type',
     align: 'center',
+    width: 96,
     render(row) {
-      const type = Number(row.type) as 0 | 1 | 2;
-      const typeConfig = menuTypeMap[type];
-      // 如果找到对应的类型配置，显示标签；否则显示原始值
-      if (typeConfig) {
-        return h(NTag, { type: typeConfig.type as any }, { default: () => typeConfig.label });
-      }
-      // 如果没有找到对应配置，直接显示数字
-      return h('span', {}, { default: () => String(row.type) });
+      const t = Number(row.type) as 0 | 1 | 2;
+      const cfg = menuTypeMap[t];
+      if (cfg) return h(NTag, { bordered: false, type: cfg.type as any }, { default: () => cfg.label });
+      return h('span', {}, String(row.type));
     }
   },
   {
     title: '状态',
     key: 'status',
     align: 'center',
+    width: 128,
     render(row) {
       return h(
         NSwitch,
@@ -148,7 +138,7 @@ const tableHeader = computed<DataTableColumns<Menu>>(() => [
           disabled: !userStore.hasPermissions(['menu:disable']),
           'checked-value': 1,
           'unchecked-value': 0,
-          'onUpdate:value': async (val: number) => {
+          'onUpdate:value': async () => {
             if (Number(row.id) === 1) {
               message.error('默认菜单不能禁用');
               return;
@@ -162,29 +152,15 @@ const tableHeader = computed<DataTableColumns<Menu>>(() => [
       );
     }
   },
-  {
-    title: '路由',
-    key: 'route',
-    align: 'center'
-  },
-  {
-    title: '排序',
-    key: 'order',
-    align: 'center',
-    sortOrder: false,
-    sorter: 'default'
-  },
-  {
-    title: '标识',
-    key: 'mark',
-    align: 'center'
-  },
+  { title: '路由', key: 'route', align: 'center' },
+  { title: '排序', key: 'order', align: 'center', width: 72, sortOrder: false, sorter: 'default' },
+  { title: '标识', key: 'mark', align: 'center' },
   {
     title: '创建时间',
     key: 'createDate',
     align: 'center',
     render(row) {
-      return getDateFormat(row.createDate);
+      return h('span', { class: 'font-mono text-[12px] text-ink-mid dark:text-paper/60' }, getDateFormat(row.createDate));
     }
   },
   {
@@ -192,7 +168,7 @@ const tableHeader = computed<DataTableColumns<Menu>>(() => [
     key: 'updateDate',
     align: 'center',
     render(row) {
-      return getDateFormat(row.updateDate);
+      return h('span', { class: 'font-mono text-[12px] text-ink-mid dark:text-paper/60' }, getDateFormat(row.updateDate));
     }
   },
   getTableActions<Menu>({
@@ -219,31 +195,20 @@ const editFields = new FormFieldBuilder()
 const editFormData = ref(generateInitialFormData(editFields));
 
 const editRules: FormRules = {
-  name: {
-    required: true,
-    message: '请输入菜单名称',
-    trigger: 'blur'
-  },
+  name: { required: true, message: '请输入菜单名称', trigger: 'blur' },
   order: {
     required: true,
     message: '请输入排序',
     trigger: 'blur',
-    validator: (rule: FormItemRule, val: number) => {
-      if (val === undefined || val === null) {
-        return false;
-      }
-      return true;
-    }
+    validator: (_rule: FormItemRule, val: number) => val !== undefined && val !== null
   },
   type: [
     {
       required: true,
       message: '请选择类型',
       trigger: 'blur',
-      validator: (rule: FormItemRule, val: number) => {
-        if (val === undefined || val === null) {
-          return new Error('请选择类型');
-        }
+      validator: (_rule: FormItemRule, val: number) => {
+        if (val === undefined || val === null) return new Error('请选择类型');
         return true;
       }
     }
@@ -253,19 +218,12 @@ const editRules: FormRules = {
       required: true,
       message: '请选择状态',
       trigger: 'blur',
-      validator: (rule: FormItemRule, val: number) => {
-        if (val === undefined || val === null) {
-          return new Error('请选择状态');
-        }
+      validator: (_rule: FormItemRule, val: number) => {
+        if (val === undefined || val === null) return new Error('请选择状态');
         return true;
       }
     }
   ]
-  // mark: {
-  //   required: true,
-  //   message: '请输入标识',
-  //   trigger: 'blur'
-  // }
 };
 
 const editFormTitle = computed(() => {
@@ -274,8 +232,6 @@ const editFormTitle = computed(() => {
       return '新增菜单';
     case 'edit':
       return '编辑菜单';
-    case 'view':
-      return '查看菜单';
     default:
       return '查看菜单';
   }
@@ -347,23 +303,13 @@ function handleCheck(rowKeys: DataTableRowKey[]) {
   checkedRowKeysRef.value = rowKeys;
 }
 
-/**
- * 处理新增操作
- * 触发新增事件并传递当前表单数据
- */
 const handleAdd = (row?: Menu) => {
   type.value = 'add';
   editFormData.value = { icon: '', ...generateInitialFormData(editFields) };
-  if (row) {
-    editFormData.value.parentId = row.id;
-  }
+  if (row) editFormData.value.parentId = row.id;
   showEditModal.value = true;
 };
 
-/**
- * 处理删除操作
- * 触发删除事件并传递当前表单数据
- */
 const handleMultipleDelete = () => {
   if (checkedRowKeysRef.value.length === 0) {
     message.warning('请选择要删除的菜单');
