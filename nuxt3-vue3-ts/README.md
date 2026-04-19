@@ -5,7 +5,7 @@ Focus-Develop
 
 ***"Focus-Develop 不仅是工具集合，更是开发理念的实践——让技术回归业务本质。"***
 
-**开源地址**：[GitHub](https://gitee.com/snihao/focus-develop)
+**开源地址**：[GitHub](https://github.com/sniHao/focus-develop)
 &nbsp;&nbsp;&nbsp;[Gitee](https://gitee.com/snihao/focus-develop)
 
 # 🥪nuxt3-vue3-ts
