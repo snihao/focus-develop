@@ -139,8 +139,10 @@ function applyTheme(isDark: boolean) {
 
 /**
  * 使用 View Transitions API 做圆形缩放过渡。
- * 以主题按钮的中心作为圆心，从半径 0 扩散到屏幕最远角。
- * 不支持时直接切换（Safari 等）。
+ * 以主题按钮中心作为圆心，半径取到视口最远角的距离。
+ * - 切换到暗色：裁剪 old（亮色快照）从 100% 收缩到 0%，露出底层新暗色
+ * - 切换到亮色：裁剪 new（亮色新视图）从 0% 扩散到 100%
+ * 不支持 View Transitions 时直接切换（Safari 旧版等）。
  */
 async function handleThemeToggle(event: MouseEvent) {
   const targetDark = !active.value;
@@ -167,12 +169,12 @@ async function handleThemeToggle(event: MouseEvent) {
     const clipPath = [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`];
     document.documentElement.animate(
       {
-        clipPath: targetDark ? clipPath : [...clipPath].reverse()
+        clipPath: targetDark ? [...clipPath].reverse() : clipPath
       },
       {
         duration: 520,
         easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
-        pseudoElement: targetDark ? '::view-transition-new(root)' : '::view-transition-old(root)'
+        pseudoElement: targetDark ? '::view-transition-old(root)' : '::view-transition-new(root)'
       }
     );
   });

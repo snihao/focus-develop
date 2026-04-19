@@ -22,23 +22,17 @@
   background-color: #101014;
 }
 
-/* 主题切换的视图过渡：以按钮中心为圆心做圆形扩散 */
+/* 主题切换的视图过渡：以主题按钮为圆心做圆形缩放
+ * 切换到亮色：浏览器默认 new 堆叠在 old 之上，对 new 做 0→100% 扩散
+ * 切换到暗色：需要手动抬高 old 层级，对 old 做 100%→0% 收缩，露出底层新暗色 */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;
   mix-blend-mode: normal;
 }
 
-::view-transition-old(root) {
-  z-index: 1;
-}
-
-::view-transition-new(root) {
-  z-index: 9999;
-}
-
 html.dark::view-transition-old(root) {
-  z-index: 9999;
+  z-index: 100;
 }
 
 html.dark::view-transition-new(root) {

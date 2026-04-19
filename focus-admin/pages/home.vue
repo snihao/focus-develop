@@ -3,7 +3,7 @@
     <!-- 欢迎抬头 -->
     <header class="mb-10 max-sm:mb-6">
       <div class="flex items-center gap-3 font-mono text-[11px] font-bold tracking-[0.22em] uppercase text-ink-mid dark:text-paper/50 mb-3">
-        <span class="text-accent">№ 01</span>
+        <span class="text-accent">01</span>
         <span aria-hidden="true" class="inline-block w-1 h-1 bg-accent rounded-full" />
         <span>DASHBOARD · 首页</span>
       </div>
@@ -97,7 +97,7 @@ const today = computed(() => {
 });
 
 const entries = [
-  { route: '/menu', title: '菜单管理', desc: '维护目录、页面、按钮三级树，驱动侧栏与权限点。' },
+  { route: '/menu', title: '菜单管理', desc: '维护目录、页面、按钮三级树，驱动侧栏与权限。' },
   { route: '/role', title: '角色管理', desc: '将菜单打包为角色，再分配给员工。' },
   { route: '/user', title: '员工管理', desc: '管理登录账号、角色指派与启用状态。' }
 ];
