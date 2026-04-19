@@ -83,7 +83,7 @@ export default defineNuxtConfig({
         resolvers: [NaiveUiResolver()]
       })
     ],
-    build:{
+    build: {
       target: 'esnext'
     },
     esbuild: {
@@ -95,7 +95,8 @@ export default defineNuxtConfig({
     baseURL: '/admin/',
     // pageTransition: { name: 'slide-left', mode: 'out-in' },
     head: {
-      title: 'Focus Admin'
+      title: 'Focus Admin',
+      link: [{ rel: 'icon', type: 'image/x-icon', href: '/admin/focus-develop.ico' }]
     }
   }
 });

@@ -27,3 +27,6 @@ components.d.ts
 *.history
 
 .stylelintcache
+
+# Shell crash dumps
+*.stackdump

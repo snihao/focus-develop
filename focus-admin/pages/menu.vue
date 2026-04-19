@@ -1,4 +1,3 @@
-@ -0,0 +1,57 @@
 <template>
   <div class="w-full h-full p-1.5">
     <div class="p-3 box-border mb-2.5 sticky top-0 z-[999] shadow-sm rounded-xl" :class="themeClass('box-bg')">
