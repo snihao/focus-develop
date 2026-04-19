@@ -40,6 +40,7 @@ The following table lists the currently implemented framework systems, which are
 | Framework Module            | Core Features                                                              | Applicable Scenarios                                                    |
 |-----------------------------|----------------------------------------------------------------------------|-------------------------------------------------------------------------|
 | **nuxt3-vue3-ts**           | SSR/SSG support, automatic API routing, strong type checking               | High-performance SEO-friendly Web application                           |
+| **focus-admin**             | Nuxt3 + Naive UI + TS, RBAC button-level permissions, dark theme           | Permission-driven admin dashboard scaffold                              |
 | **springboot-ddd**          | Domain-driven Design, Event Traceability, Hexagonal Architecture           | Complex Business System/Domain Model Project                            |
 | **springboot-ssm**          | Annotated CRUD, multi-data source support, lightweight transaction control | Traditional enterprise-level background management system/Basic project |
 | **spring-cloud-alibaba**    | Implemented based on spring-cloud-alibaba-dependencies                     | Out-of-the-box/microservice cluster                                     |
