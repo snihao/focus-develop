@@ -20,7 +20,7 @@
       </div>
       <nav class="flex gap-7 max-sm:gap-5">
         <a
-          href="https://gitee.com/snihao/focus-develop"
+          href="https://github.com/sniHao/focus-develop"
           target="_blank"
           rel="noopener noreferrer"
           class="group inline-flex items-center gap-0.5 no-underline text-ink font-mono text-[11px] font-medium tracking-[0.1em] uppercase py-1.5 px-0.5 border-b border-transparent transition-all duration-300 ease-out hover:text-accent hover:border-b-accent">
