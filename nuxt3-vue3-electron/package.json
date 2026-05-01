@@ -1,0 +1,112 @@
+{
+  "name": "nuxt-electron-app",
+  "version": "1.0.0",
+  "private": true,
+  "author": "sniHao",
+  "description": "Nuxt 3 + Vue 3 + TypeScript + Electron 桌面应用",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "electron:dev": "node electron-dev.js",
+    "electron:dev:simple": "concurrently \"nuxt dev\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron:build": "nuxt generate && electron-builder",
+    "electron:build:win": "nuxt generate && electron-builder --win",
+    "electron:build:mac": "nuxt generate && electron-builder --mac",
+    "electron:build:linux": "nuxt generate && electron-builder --linux",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "nuxt typecheck"
+  },
+  "dependencies": {
+    "axios": "^1.9.0",
+    "naive-ui": "^2.41.0",
+    "nuxt": "~3.17.1",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@nuxtjs/color-mode": "^3.3.0",
+    "@nuxtjs/tailwindcss": "^6.11.0",
+    "@pinia/nuxt": "^0.11.3",
+    "@tailwindcss/postcss": "^4.2.4",
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "@vueuse/core": "^14.2.1",
+    "@vueuse/nuxt": "^14.2.1",
+    "concurrently": "^8.2.0",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-vue": "^9.20.0",
+    "nuxtjs-naive-ui": "^1.0.2",
+    "pinia": "^3.0.4",
+    "pinia-plugin-persistedstate": "^4.7.1",
+    "prettier": "^3.2.0",
+    "sass": "^1.99.0",
+    "tailwindcss": "^4.1.10",
+    "typescript": "^5.3.0",
+    "unplugin-auto-import": "^21.0.0",
+    "unplugin-vue-components": "^32.0.0",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.example.nuxt-electron",
+    "productName": "Nuxt Electron App",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json",
+      "!node_modules/@parcel/**"
+    ],
+    "npmRebuild": false,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "build/icon.icns"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}

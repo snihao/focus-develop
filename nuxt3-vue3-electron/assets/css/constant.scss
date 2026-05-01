@@ -1,0 +1,23 @@
+@use "sass:math";
+
+$ft-color-tips: rgb(210, 210, 210);
+$bg-color: #F2F3F5;
+
+$base-font-size: 16px !default;
+
+@function px-to-rem($px) {
+  @if math.is-unitless($px) {
+    $px: $px * 1px;
+  }
+  @return calc($px / $base-font-size) * 1rem;
+}
+
+$px-64: px-to-rem(64);
+$px-48: px-to-rem(48);
+$px-32: px-to-rem(32);
+$px-24: px-to-rem(24);
+$px-20: px-to-rem(20);
+$px-16: px-to-rem(16);
+$px-12: px-to-rem(12);
+$px-8: px-to-rem(8);
+$px-4: px-to-rem(4);
