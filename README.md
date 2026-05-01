@@ -34,6 +34,7 @@ Focus-Develop
 |-----------------------------|---------------------------------------|------------------|
 | **nuxt3-vue3-ts**           | SSR/SSG支持, 自动API路由, 强类型校验             | 高性能SEO友好型Web应用   |
 | **focus-admin**             | Nuxt3+NaiveUI+TS, RBAC按钮级权限, 暗色主题     | 权限驱动型中后台/管理系统骨架  |
+| **nuxt3-vue3-electron**    | Nuxt3+Vue3+Electron桌面端, NaiveUI组件库, 主题切换, 权限中间件     | 跨平台桌面应用/Web套壳场景 |
 | **springboot-ddd**          | 领域驱动设计, 事件溯源, 六边形架构                   | 复杂业务系统/领域模型项目    |
 | **springboot-ssm**          | 注解式CRUD, 多数据源支持, 轻量级事务控制              | 传统企业级后台管理系统/基础项目 |
 | **spring-cloud-alibaba**    | 基于spring-cloud-alibaba-dependencies实现 | 开箱即用/微服务集群       |
